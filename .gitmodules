@@ -1,0 +1,3 @@
+[submodule "habitat_scanbot2d/typings/open3d"]
+	path = typings/open3d
+	url = git@github.com:againxx/open3d-stubs.git

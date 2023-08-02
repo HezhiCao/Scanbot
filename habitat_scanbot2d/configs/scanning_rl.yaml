@@ -1,0 +1,98 @@
+BASE_TASK_CONFIG_PATH: "configs/scanning_task.yaml"
+TRAINER_NAME: "ppo-scanning"
+ENV_NAME: "ScanningRLEnv"
+SIMULATOR_GPU_ID: 0
+TORCH_GPU_ID: 0
+TENSORBOARD_DIR: "tb"
+EVAL_CKPT_PATH_DIR: "data/new_checkpoints"
+NUM_ENVIRONMENTS: 2
+SENSORS: ["DEPTH_SENSOR", "SEMANTIC_SENSOR"]
+CHECKPOINT_FOLDER: "data/new_checkpoints"
+NUM_UPDATES: -1
+NUM_CHECKPOINTS: -1
+CHECKPOINT_INTERVAL: 100
+TOTAL_NUM_STEPS: 1e8
+LOG_INTERVAL: 1
+FORCE_TORCH_SINGLE_THREADED: True
+RECORD_SCENE_STATISTICS: True
+LOG_SCENE_STATISTICS_INTERVAL: 10
+LOG_ACHIEVED_RATE_INTERVAL: 10
+MONITORED_SCENES: ["17DRP5sb8fy", "2n8kARJN3HM", "1pXnuDYAj8r", "759xd9YjKW5", "5q7pvUzZiYa", "7y3sRwLe3Va", "JeFG25nYj2p", "i5noydFURQK"]
+USE_LINEAR_REACHABILITY_SCHEDULER: True
+LINEAR_REACHABILITY_SCHEDULER_MAX_STEP: 2e7
+LINEAR_REACHABILITY_SCHEDULER_UPDATE_INTERVAL: 100
+RL:
+  SUCCESS_REWARD: 0.0
+  SLACK_REWARD: -0.01
+  EXPLORATION_REWARD: 0.05
+  QUALITY_REWARD: 0.1
+  REACHABILITY_REWARD: -0.01
+
+  PPO:
+    clip_param: 0.2
+    ppo_epoch: 4
+    num_mini_batch: 2
+    value_loss_coef: 0.5
+    entropy_coef: 0.005
+    lr: 2.5e-4
+    eps: 1e-5
+    max_grad_norm: 0.5
+    num_steps: 5
+    hidden_size: 512
+    use_gae: True
+    gamma: 0.99
+    tau: 0.95
+    use_linear_clip_decay: False
+    use_linear_lr_decay: False
+    reward_window_size: 50
+    use_double_buffered_sampler: True
+    global_backbone: "simple_net"
+    used_inputs: ["semantic_map"]
+
+  AUXILIARY_TASKS:
+    tasks: [] # "PathComplexity", "QualityMemory"
+    loss_coef: 0.05
+    step_count_clip: 5
+    step_count_class_interval: 2
+
+  SAC:
+    #num_steps: 128
+    num_steps: 16
+    # buffer_size: 1e4
+    buffer_size: 32
+    # batch_size: 128
+    batch_size: 16
+    sac_epoch: 4
+    num_mini_batch: 1
+    lr: 2.5e-4
+    eps: 1.0e-5
+    max_grad_norm: 0.5
+    hidden_size: 512
+    entropy_coef: 0.01
+    gamma: 0.99
+    target_update_interval: 2
+    tau: 0.005  #to be check
+    use_linear_lr_decay: False
+    reward_window_size: 50
+    use_double_buffered_sampler: False
+    global_backbone: "simple_net"
+    used_inputs: [ "semantic_map" ]
+
+  DDPPO:
+    distrib_backend: "NCCL"
+    pretrained_weights: "data/pretrained_data/ckpt.4.pth"
+    pretrained: False
+    num_recurrent_layers: 1
+
+  POLICY:
+    name: "ScanningGlobalPolicy"
+    action_distribution_type: "gaussian"
+    ACTION_DIST:
+      use_independent_std: False
+      use_log_std: True
+      use_softplus: False
+      max_std: 1.0
+    OBS_TRANSFORMS:
+      ENABLED_TRANSFORMS: ["NormalizeMapPose", "NormalizeSemanticMap"]
+      NORMALIZE_SEMANTIC_MAP:
+        OBSTACLE_THRESHOLD: 10

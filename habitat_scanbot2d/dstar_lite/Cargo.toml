@@ -1,0 +1,17 @@
+[package]
+name = "dstar_lite"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "dstar_lite_path_finder"
+crate-type = ["cdylib"]
+
+[dependencies]
+numpy = "0.14"
+ndarray = "0.15.0"
+float_eq = "0.7.0"
+
+[dependencies.pyo3]
+version = "0.14"
+features = ["extension-module"]

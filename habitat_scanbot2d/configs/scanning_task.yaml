@@ -1,0 +1,113 @@
+ENVIRONMENT:
+  MAX_EPISODE_STEPS: 40
+SIMULATOR:
+  AGENT_0:
+    SENSORS: ["DEPTH_SENSOR", "SEMANTIC_SENSOR"]
+  DEPTH_SENSOR:
+    HEIGHT: 128
+    WIDTH: 128
+    NORMALIZE_DEPTH: False
+  SEMANTIC_SENSOR:
+    HEIGHT: 128
+    WIDTH: 128
+  HABITAT_SIM_V0:
+    GPU_GPU: True
+  FORWARD_STEP_SIZE: 0.5
+  TURN_ANGLE: 20
+TASK:
+  TYPE: "Scanning-v0"
+  SENSORS: ["SEMANTIC_TOPDOWN_SENSOR", 'MAP_POSE_SENSOR']
+  POSSIBLE_ACTIONS: ["STOP", "MOVE_FORWARD", "TURN_LEFT", "TURN_RIGHT", "LOOK_UP", "LOOK_DOWN", "NAVIGATION"]
+  POINT_CLOUD_SENSOR: &point_cloud_sensor
+    TYPE: "PointCloudCudaSensor"
+  CATEGORY_SEMANTIC_SENSOR: &category_semantic_sensor
+    TYPE: "CategorySemanticCudaSensor"
+  SEMANTIC_TOPDOWN_SENSOR:
+    TYPE: "SemanticTopDownCudaSensor"
+    NEAR_THRESHOLD: 0.1
+    FAR_THRESHOLD: 3.0
+    H_MIN_THRESHOLD: 0.2
+    H_MAX_THRESHOLD: 2.0
+    INITIAL_CAMERA_HEIGHT: 1.25
+    MAP_SIZE_IN_METERS: &map_size_in_meters 36
+    MAP_CELL_SIZE: &map_cell_size 0.05
+    NUM_QUALITY_CHANNELS: &num_quality_channel 8
+    BEST_SCANNING_DISTANCE: 1.5
+    NUM_TOTAL_CHANNELS: &num_total_channels 21
+    DATASET_TYPE: "mp3d"
+    SEMANTIC_CHANNEL_CATEGORIES: ["chair", "table", "cabinet", "sofa", "bed", "sink", "stairs", "bathtub", "counter", "others"]
+    MIN_POINT_NUM_THRESHOLD: 20
+    USE_TORCH_EXTENSIONS: True
+    POINT_CLOUD_SENSOR:
+      <<: *point_cloud_sensor
+    CATEGORY_SEMANTIC_SENSOR:
+      <<: *category_semantic_sensor
+  MAP_POSE_SENSOR:
+    TYPE: "MapPoseSensor"
+    MAP_SIZE_IN_METERS: *map_size_in_meters
+    MAP_CELL_SIZE: *map_cell_size
+  SEMANTIC_MAP_BUILDER:
+    MAP_SIZE_IN_METERS: *map_size_in_meters
+    MAP_CELL_SIZE: 0.15
+    NUM_TOTAL_CHANNELS: *num_total_channels
+    USE_LOCAL_REPRESENTATION: True
+    LOCAL_MAP_CELL_SIZE: *map_cell_size
+    TRAJECTORY_LENGTH: 200
+  NAVIGATION_QUALITY_MAP_BUILDER:
+    MAP_SIZE_IN_METERS: *map_size_in_meters
+    MAP_CELL_SIZE: *map_cell_size
+    NUM_QUALITY_CHANNELS: *num_quality_channel
+  PRIMITIVE_ACTION_PLANNER: &primitive_action_planner
+    MAP_SIZE_IN_METERS: *map_size_in_meters
+    MAP_CELL_SIZE: *map_cell_size
+    ANGLE_THRESHOLD: 0.5236 # 30 degree
+    POSITION_THRESHOLD: 0.3
+    NEXT_WAYPOINT_THRESHOLD: 1.0
+  ACTIONS:
+    NAVIGATION:
+      TYPE: "NavigationAction"
+      VISUALIZATION: False
+      MAX_PRIMITIVE_STEPS: 15
+      COLLIDED_PLANNING_THRESHOLD: 2
+      TRAPPED_BREAK_THRESHOLD: 5
+      CHECK_UNSEEN_OBSTACLES_RANGE: 10
+      UNSEEN_OBSTACLE_ADDED_THRESHOLD: 3
+      USE_SIMULATOR_ORACLE: False
+      PATH_PLANNING_INTERVAL: 5
+      PATH_FINDER_ITERATION_THRESHOLD: 2500
+      PATH_FINDER_OBSTACLE_COST: 1000.0
+      PRIMITIVE_ACTION_PLANNER:
+        <<: *primitive_action_planner
+      OBSTACLE_THRESHOLD: 10
+      NUM_TURN_AROUND: 18
+      COUNTED_STEP_THRESHOLD: 2
+  MEASUREMENTS: ["COMPLETED_AREA", "COMPLETED_RATE", "LONG_TERM_GOAL_REACHABILITY", "PRIMITIVE_ACTION_COUNT", "SCANNING_QUALITY", "SCANNING_RATE", "SCANNING_SUCCESS"] # "QUALITY_INCREASE_RATIO" "LEFT_STEP_COUNT" "RIGHT_STEP_COUNT"
+  COMPLETED_AREA:
+    TYPE: "CompletedArea"
+  COMPLETED_RATE:
+    TYPE: "CompletedRate"
+  SCANNING_SUCCESS:
+    TYPE: "ScanningSuccess"
+    SUCCESS_COMPLETED_RATE: 0.85
+    SUCCESS_SCANNING_RATE: 0.85
+    USE_ADAPTIVE_RATE: True
+    AVERAGE_COEFFICIENT: 0.01
+    ADAPTIVE_COEFFICIENT: 0.5
+  LONG_TERM_GOAL_REACHABILITY:
+    TYPE: "LongTermGoalReachability"
+  PRIMITIVE_ACTION_COUNT:
+    TYPE: "PrimitiveActionCount"
+  SCANNING_QUALITY:
+    TYPE: "ScanningQuality"
+  SCANNING_RATE:
+    TYPE: "ScanningRate"
+  LEFT_STEP_COUNT:
+    TYPE: "LeftStepCount"
+  RIGHT_STEP_COUNT:
+    TYPE: "RightStepCount"
+  QUALITY_INCREASE_RATIO:
+    TYPE: "QualityIncreaseRatio"
+DATASET:
+  TYPE: PointNav-v1
+  SPLIT: train
+  DATA_PATH: data/datasets/pointnav/mp3d/v1/{split}/{split}.json.gz
