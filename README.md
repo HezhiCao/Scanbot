@@ -57,29 +57,50 @@ python setup.py build
 cd .. # suppose you are in habitat_scanbot2d
 ln -s torch_extensions/build/lib.linux-x86_64-cpython-37/channels_constructor.cpython-XXm-x86_64-linux-gnu.so .
 ```
-The code requires datasets in a data folder in the following format (same as habitat-lab):
+The code requires datasets in a data folder in the following format (same as habitat-lab). The `val`, `val_mini` episodes of mp3d and gibson in `pointnav` folder are merged correspondingly, and episodes of gibson are copied to `train/content` folder:
 ```
-habitat_scanbot2d/
-  data/
-    scene_datasets/
-      mp3d_gibson/
-        Adrian.glb
-        Adrian.navmesh
-        ...
-    datasets/
-      pointnav/
-        mp3d_gibson/
-          v1/
-            train/
-            val/
-            ...
+habitat_scanbot2d
+└── data
+    ├── datasets
+    │   └── pointnav
+    │       └── mp3d_gibson
+    │           └── v1
+    │               ├── test
+    │               │   └── test.json.gz
+    │               ├── train
+    │               │   ├── content
+    │               │   │   ├── Albertville.json.gz
+    │               │   │   ├── 17DRP5sb8fy.json.gz
+    │               │   │   └── ...
+    │               │   └── train.json.gz
+    │               ├── val
+    │               │   └── val.json.gz
+    │               └── val_mini
+    │                   └── val_mini.json.gz
+    └── scene_datasets
+        ├── gibson
+        │   ├── Albertville.glb
+        │   ├── Albertville.navmesh
+        │   └── ...
+        └── mp3d
+            ├── 17DRP5sb8fy
+            │   ├── 17DRP5sb8fy.glb
+            │   ├── 17DRP5sb8fy.navmesh
+            │   └── ...
+            ├── 1LXtFkjw3qL
+            │   ├── 1LXtFkjw3qL.glb
+            │   ├── 1LXtFkjw3qL.navmesh
+            │   └── ...
+            └── ...
+
 ```
 Please download the data using the instructions here: https://github.com/facebookresearch/habitat-lab#datasets
 
 Then regenerate navmesh to forbid cross-floor navigation:
 ```
 cd habitat_scanbot2d
-python scripts/navmesh_generator.py -d data/scene_datasets/mp3d_gibson
+python scripts/navmesh_generator.py -d data/scene_datasets/mp3d
+python scripts/navmesh_generator.py -d data/scene_datasets/gibson
 ```
 
 ## Train & Test
